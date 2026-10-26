@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090a0c">
+<title>Risk Manager · Black & Gold</title>
+<meta name="description" content="Калькулятор риска для фьючерсов: торговля, набор позиции и цели прибыли.">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#090a0c;--card:#1c1d1f;--field:#252527;--edge:#393838;--fg:#f7f5ef;--dim:#aaa8a5;--gold:#eeba45;--bright:#ffda83;--red:#ff8b9b;--redbg:#3a242b;--green:#75d9ae}
+*{box-sizing:border-box}
+html{background:var(--bg)}body{margin:0;background:var(--bg);font:12px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif;font-variant-numeric:tabular-nums;color:var(--fg)}
+button,input{font:inherit}button{cursor:pointer}
+.app{width:100%;max-width:520px;margin:0 auto;padding:10px 10px max(13px, env(safe-area-inset-bottom));border-radius:16px;background:radial-gradient(ellipse at 85% 0%,rgba(232,175,52,.12),transparent 45%),var(--bg)}
+.header{height:41px;display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px}
+.identity{display:flex;gap:7px;align-items:center;min-width:0}.logo{height:33px;width:33px;flex-shrink:0;display:grid;place-items:center;color:var(--gold);border:1px solid #8d6a2d;background:#2b2315;border-radius:9px}
+.brand{font-size:16px;font-weight:900;letter-spacing:-.6px;white-space:nowrap;line-height:1.1}.brand b{color:var(--gold)}.subbrand{font-size:8px;color:var(--dim);margin-top:3px;letter-spacing:.6px}
+.live{font-size:9px;font-weight:800;color:var(--bright);padding:5px 7px;border-radius:20px;border:1px solid #5b471f;background:#3027105c;white-space:nowrap}
+.tabs{display:grid;grid-template-columns:1fr 1.14fr 1.05fr;gap:5px;padding:4px;border-radius:11px;border:1px solid #68532f;background:#ffffff05;margin-bottom:9px}
+.tab{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;min-width:0;min-height:40px;padding:5px 2px;border-radius:8px;border:1px solid #eeba4570;background:#eeba450b;color:#d6c499;font-size:10px;font-weight:800;line-height:1.15;transition:background .35s,border-color .35s,color .35s,box-shadow .35s,transform .35s}
+.tab[aria-selected=true]{border-color:var(--gold);color:#fff1c8;background:linear-gradient(160deg,#ffdb8436,#edb63d18);box-shadow:0 3px 15px #eeba451b;transform:translateY(-1px)}.tab:focus-visible,.reset:focus-visible{outline:2px solid var(--bright);outline-offset:2px}.tab svg{width:14px;height:14px}
+/* Equal natural height: the tallest panel determines one shared row; no scrolling inside panels */
+.stage{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;isolation:isolate}.pane{grid-area:1/1;min-width:0;visibility:hidden;opacity:0;pointer-events:none;transform:translateY(6px);transition:opacity .36s ease,transform .36s ease,visibility 0s linear .36s}.pane.active{visibility:visible;opacity:1;pointer-events:auto;transform:translateY(0);transition:opacity .36s ease,transform .36s ease,visibility 0s}
+.card{background:linear-gradient(160deg,#202022,#151618);border:1px solid var(--edge);border-radius:11px;padding:10px;margin-bottom:8px}.cardhead{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:9px}.cardhead strong{font-size:12px;font-weight:800}
+.reset{background:none;color:var(--gold);border:0;padding:3px;font-size:10px;font-weight:800}.chip{color:var(--gold);font-size:8px;font-weight:800;background:#edbb4510;border:1px solid #6e5429;border-radius:5px;padding:3px 6px;white-space:nowrap}
+.grid,.metrics,.summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}label{min-width:0;display:block}.label{font-size:10px;font-weight:650;color:#c2bfbb;margin-bottom:3px;display:block}
+.field{display:flex;align-items:center;min-width:0;height:36px;background:var(--field);border:1px solid #444143;border-radius:8px;overflow:hidden}.field:focus-within{border-color:var(--gold);box-shadow:0 0 0 2px #eeba451f}.field.invalid{border-color:var(--red)}
+input{width:100%;height:100%;min-width:0;padding:0 0 0 9px;outline:0;border:0;background:transparent;color:white;border-radius:0;font-size:16px;font-weight:800}.unit{padding:0 9px 0 3px;color:var(--gold);font-size:11px;font-weight:800;flex-shrink:0}.hint{font-size:8px;color:var(--dim);margin-top:2px}
+.divider{height:1px;margin:10px 0 9px;background:linear-gradient(90deg,#89692f,#343335)}.metric{min-width:0;overflow:hidden;padding:9px 8px;background:#232426;border:1px solid #403d3e;border-radius:9px}.metric.gold{background:#30291c;border-color:#765c30}.metric.danger{background:var(--redbg);border-color:#69434a}.metric.safe{background:#1c3429;border-color:#36604b}
+.ml{color:#b6b0ac;font-size:10px;line-height:1.3}.value{font-size:22px;font-weight:900;line-height:1.2;letter-spacing:0;margin-top:5px;min-height:1.2em;white-space:nowrap;width:100%;font-variant-numeric:tabular-nums}.gold .value{color:var(--bright)}.danger .value{color:var(--red)}.safe .value{color:var(--green)}
+.note{font-size:9.2px;line-height:1.45;color:#ada9a3;padding:2px}.note strong{color:var(--bright)}.error{border:1px solid #8c4a58;border-radius:9px;background:#3c222a;color:#ffabb7;padding:8px;font-size:10px;line-height:1.4;margin:6px 0}.error[hidden]{display:none!important}
+.summary{margin-bottom:9px}.sum{min-width:0;background:#2c261c;border:1px solid #67502b;border-radius:9px;padding:9px}.sumvalue{font-size:20px;font-weight:900;color:var(--bright);margin:4px 0;overflow-wrap:anywhere}.small{font-size:9px;color:var(--dim)}
+.bar{height:6px;display:flex;gap:2px;border-radius:7px;overflow:hidden;margin-bottom:8px}.bar i:nth-child(1){flex:10;background:#775522}.bar i:nth-child(2){flex:10;background:#a0762b}.bar i:nth-child(3){flex:20;background:#c08c32}.bar i:nth-child(4){flex:20;background:#dfab42}.bar i:nth-child(5){flex:40;background:#ffda83}
+table{width:100%;table-layout:fixed;border-collapse:collapse}th,td{text-align:right;padding:7px 3px;border-bottom:1px solid #383738}th{font-size:9px;color:var(--dim);font-weight:650}td{font-size:10.5px;font-weight:750;white-space:nowrap}th:first-child,td:first-child{text-align:left;width:11%}th:nth-child(2){width:35%}th:nth-child(3){width:27%}th:nth-child(4){width:27%}.idx{display:inline-grid;place-items:center;height:20px;width:20px;border:1px solid #654f2b;border-radius:6px;background:#332918;color:var(--gold)}tfoot td{border:0;background:#302a1e;color:var(--bright);font-weight:850}
+.hero{background:radial-gradient(ellipse at 50% 0%,#5a431e,#2a2317 80%);border:1px solid #80632d;border-radius:10px;text-align:center;padding:12px 7px;margin-bottom:8px}.hero-value{font-size:30px;font-weight:900;line-height:1.2;color:var(--bright);white-space:nowrap;margin:6px 0;letter-spacing:0;width:100%;min-height:1.2em}.hero-pct{display:inline-block;max-width:100%;border-radius:20px;background:#59451f80;color:var(--bright);font-size:11px;font-weight:800;letter-spacing:0;white-space:nowrap;padding:5px 9px}
+.goalbox{padding:9px;border:1px solid #454141;background:#242426;border-radius:9px;min-width:0;overflow:hidden}.goalvalue{font-size:21px;line-height:1.2;font-weight:900;letter-spacing:0;margin:5px 0;white-space:nowrap;min-height:1.2em}.goalpct{font-size:11px;font-weight:800;color:var(--bright);white-space:nowrap}.dep-row{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-top:11px;font-size:10px;color:var(--dim)}.dep-row strong{font-size:12px;color:var(--bright)}
+/* Identical digit cell for moving and stationary digits, eliminating fuzzy final transform */
+.digits{display:inline-flex;align-items:center;vertical-align:middle;white-space:pre;line-height:1.2;font-family:inherit;font-size:inherit;font-weight:inherit;letter-spacing:0;font-variant-numeric:tabular-nums}.digit{display:inline-grid;place-items:center;position:relative;flex:0 0 1ch;width:1ch;height:1.2em;overflow:hidden;vertical-align:middle}.digit-final{display:grid;place-items:center;width:100%;height:100%;font:inherit;line-height:1;text-align:center}.digit-track{position:absolute;top:0;left:0;width:100%;pointer-events:none}.digit-step{display:grid;place-items:center;width:100%;height:1.2em;font:inherit;line-height:1;text-align:center}.symbol{display:inline-flex;align-items:center;height:1.2em;white-space:pre;flex-shrink:0;line-height:1}
+@media(max-width:365px){.app{padding:8px}.brand{font-size:15px}.card{padding:9px}.tab{font-size:9.5px}.grid{gap:6px}.metric{padding:8px 7px}.value{font-size:19px}.hero-value{font-size:26px}.goalvalue{font-size:18px}td{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.pane,.tab{transition:none!important;transform:none!important}}
+</style>
+</head>
+<body>
+<main class="app" id="risk-app">
+<header class="header"><div class="identity"><div class="logo" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 17l6-6 4 3 8-9"/><path d="M16 5h5v5"/></svg></div><div><div class="brand">RISK <b>MANAGER</b></div><div class="subbrand">FUTURES · BLACK & GOLD</div></div></div><span class="live">● LIVE</span></header>
+<nav class="tabs" role="tablist" aria-label="Разделы калькулятора">
+<button type="button" class="tab" id="tab-trade" role="tab" aria-selected="true" aria-controls="pane-trade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 3 8-9"/><path d="M16 5h5v5"/></svg>Торговля</button>
+<button type="button" class="tab" id="tab-parts" role="tab" aria-selected="false" aria-controls="pane-parts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>Набор позиции</button>
+<button type="button" class="tab" id="tab-goals" role="tab" aria-selected="false" aria-controls="pane-goals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>Цели прибыли</button>
+</nav>
+<div class="stage">
+<section class="pane active" id="pane-trade" role="tabpanel" aria-labelledby="tab-trade">
+<div class="card"><div class="cardhead"><strong>Параметры торговли</strong><button class="reset" type="button" id="reset">↻ Сбросить</button></div>
+<div class="grid">
+<label><span class="label">Депозит</span><span class="field"><input id="deposit" type="text" inputmode="decimal" autocomplete="off" value="100"><span class="unit">$</span></span></label>
+<label><span class="label">Плечо</span><span class="field"><input id="leverage" type="text" inputmode="decimal" autocomplete="off" value="10"><span class="unit">×</span></span></label>
+<label><span class="label">Размер позиции</span><span class="field"><input id="position" type="text" inputmode="decimal" autocomplete="off" value="5"><span class="unit">%</span></span></label>
+<label><span class="label">Стоп-лосс</span><span class="field"><input id="stop" type="text" inputmode="decimal" autocomplete="off" value="150"><span class="unit">%</span></span><div class="hint">До 1000%</div></label>
+</div><div class="error" id="err-trade" role="alert" hidden></div><div class="divider"></div><div class="cardhead"><strong>Расчёт позиции</strong><span class="chip">ANIMATED</span></div>
+<div class="metrics"><div class="metric gold"><div class="ml">Стоимость позиции</div><div class="value" id="res-notional">5,00 $</div></div><div class="metric"><div class="ml">Необходимая маржа</div><div class="value" id="res-margin">0,50 $</div></div><div class="metric danger"><div class="ml">Убыток по стопу</div><div class="value" id="res-loss">7,50 $</div></div><div class="metric danger" id="risk-card"><div class="ml">Риск от депозита</div><div class="value" id="res-risk">7,5 %</div></div></div></div>
+<div class="note"><strong>Важно:</strong> доля позиции 5% — не фактический риск. При стопе 150% и плече 10× ликвидация может наступить раньше. Комиссии и проскальзывание не учтены.</div>
+</section>
+<section class="pane" id="pane-parts" role="tabpanel" aria-labelledby="tab-parts" aria-hidden="true" inert>
+<div class="card"><div class="cardhead"><strong>Набор позиции · 5 частей</strong><span class="chip">10 / 10 / 20 / 20 / 40</span></div><div class="error" id="err-parts" role="alert" hidden></div>
+<div class="summary"><div class="sum"><div class="ml">Общий объём</div><div class="sumvalue" data-out="partVolume">5,00 $</div><div class="small" data-out="partShare">5 % депозита</div></div><div class="sum"><div class="ml">Общая маржа</div><div class="sumvalue" data-out="partMargin">0,50 $</div><div class="small" data-out="partLev">Плечо 10×</div></div></div>
+<div class="bar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><table><thead><tr><th>№</th><th>Доля</th><th>Объём</th><th>Маржа</th></tr></thead><tbody>
+<tr><td><span class="idx">1</span></td><td>10%<div class="small" data-share="0">0,5% деп.</div></td><td data-volume="0">0,50 $</td><td data-margin="0">0,05 $</td></tr>
+<tr><td><span class="idx">2</span></td><td>10%<div class="small" data-share="1">0,5% деп.</div></td><td data-volume="1">0,50 $</td><td data-margin="1">0,05 $</td></tr>
+<tr><td><span class="idx">3</span></td><td>20%<div class="small" data-share="2">1% деп.</div></td><td data-volume="2">1,00 $</td><td data-margin="2">0,10 $</td></tr>
+<tr><td><span class="idx">4</span></td><td>20%<div class="small" data-share="3">1% деп.</div></td><td data-volume="3">1,00 $</td><td data-margin="3">0,10 $</td></tr>
+<tr><td><span class="idx">5</span></td><td>40%<div class="small" data-share="4">2% деп.</div></td><td data-volume="4">2,00 $</td><td data-margin="4">0,20 $</td></tr>
+</tbody><tfoot><tr><td colspan="2">ИТОГО · 100%</td><td data-out="partVolume">5,00 $</td><td data-out="partMargin">0,50 $</td></tr></tfoot></table></div>
+<div class="note">Пять частей пересчитываются автоматически. Минимальные размеры ордеров на бирже не учитываются.</div>
+</section>
+<section class="pane" id="pane-goals" role="tabpanel" aria-labelledby="tab-goals" aria-hidden="true" inert>
+<div class="card"><div class="cardhead"><strong>План прибыли</strong><span class="chip">TARGET</span></div>
+<div class="grid"><label><span class="label">Цель за месяц</span><span class="field"><input id="goal" type="text" inputmode="decimal" autocomplete="off" value="300"><span class="unit">$</span></span></label><label><span class="label">Торговых дней</span><span class="field"><input id="days" type="text" inputmode="numeric" autocomplete="off" value="20"><span class="unit">дн.</span></span></label></div>
+<div class="error" id="err-goals" role="alert" hidden></div><div class="dep-row"><span>Депозит</span><strong data-out="deposit">100,00 $</strong></div></div>
+<div class="card"><div class="cardhead"><strong>Целевые показатели</strong><span class="chip">ANIMATED</span></div><div class="hero"><div class="ml">Цель за месяц</div><div class="hero-value" id="res-month">300,00 $</div><div class="hero-pct" id="res-monthPct">+300 % от депозита</div></div><div class="grid"><div class="goalbox"><div class="ml">Цель в день</div><div class="goalvalue" id="res-day">15,00 $</div><div class="goalpct" id="res-dayPct">+15 %</div></div><div class="goalbox"><div class="ml">Торговых дней</div><div class="goalvalue" id="res-daysCount">20</div><div class="small">за месяц</div></div></div></div>
+</section>
+</div>
+</main>
+<script>
+(function(){
+'use strict';
+const defaults={deposit:'100',leverage:'10',position:'5',stop:'150',goal:'300',days:'20'};
+const f=Object.fromEntries(Object.keys(defaults).map(k=>[k,document.getElementById(k)]));
+const money=n=>Number.isFinite(n)?new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:Math.abs(n)>0&&Math.abs(n)<.01?5:2}).format(n)+' $':'—';
+const percent=n=>Number.isFinite(n)?new Intl.NumberFormat('ru-RU',{maximumFractionDigits:4}).format(n)+' %':'—';
+const plain=(key,value)=>document.querySelectorAll('[data-out="'+key+'"]').forEach(el=>el.textContent=value);
+const parse=s=>{const x=s.trim().replace(/[\s\u00a0\u202f]/g,'').replace(',','.');return /^[+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(x)?Number(x):NaN;};
+const rules={deposit:v=>v>0&&v<=1e12?'':'Депозит должен быть больше 0.',leverage:v=>v>=1&&v<=1000?'':'Плечо от 1 до 1000.',position:v=>v>0&&v<=100?'':'Размер позиции больше 0% и не более 100%.',stop:v=>v>0&&v<=1000?'':'Стоп-лосс больше 0% и не более 1000%.',goal:v=>v>=0&&v<=1e12?'':'Цель прибыли должна быть неотрицательной.',days:v=>Number.isInteger(v)&&v>=1&&v<=31?'':'Торговых дней должно быть от 1 до 31.'};
+const keys=['notional','margin','loss','risk','month','monthPct','day','dayPct','daysCount'];
+const output=Object.fromEntries(keys.map(k=>[k,document.getElementById('res-'+k)]));
+const activeAnimations=new WeakMap();
+const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let ready=false;
+function roll(key,next){
+ const el=output[key],old=el.dataset.value===undefined?el.textContent:el.dataset.value;
+ if(old===next)return;
+ el.dataset.value=next;el.setAttribute('aria-label',next);
+ (activeAnimations.get(el)||[]).forEach(a=>a.cancel());activeAnimations.set(el,[]);
+ if(next==='—'||!/\d/.test(next)){el.textContent=next;el.style.fontSize='';return;}
+ const oldDigits=old.match(/\d/g)||[],nextDigits=next.match(/\d/g)||[];
+ const animate=ready&&!reduce&&old!=='—'&&typeof el.animate==='function';
+ const row=document.createElement('span');row.className='digits';row.setAttribute('aria-hidden','true');
+ let i=0;const moving=[];
+ for(const ch of next){
+   if(!/\d/.test(ch)){const s=document.createElement('span');s.className='symbol';s.textContent=ch;row.appendChild(s);continue;}
+   const target=Number(ch),aligned=i+oldDigits.length-nextDigits.length;
+   const from=aligned>=0&&aligned<oldDigits.length?Number(oldDigits[aligned]):0;
+   const slot=document.createElement('span');slot.className='digit';
+   const final=document.createElement('span');final.className='digit-final';final.textContent=ch;slot.appendChild(final);
+   if(animate){
+     final.style.visibility='hidden';
+     const track=document.createElement('span');track.className='digit-track';
+     const steps=20+(target-from+10)%10;
+     for(let j=0;j<=steps;j++){const step=document.createElement('span');step.className='digit-step';step.textContent=String((from+j)%10);track.appendChild(step);}
+     slot.appendChild(track);moving.push({slot,track,final,steps,index:i});
+   }
+   row.appendChild(slot);i++;
+ }
+ el.replaceChildren(row);el.style.fontSize='';
+ // Ensure long values shrink before rolling, without changing size at the end.
+ const available=el.clientWidth-2,measured=row.getBoundingClientRect().width,base=parseFloat(getComputedStyle(el).fontSize);
+ if(available>15&&measured>available&&base>11){el.style.fontSize=Math.max(11,Math.floor(base*available/measured*10)/10)+'px';}
+ if(!moving.length)return;
+ const anims=[];
+ for(const item of moving){
+   const {slot,track,final,steps,index}=item;
+   const h=slot.getBoundingClientRect().height;
+   const animation=track.animate([{transform:'translateY(0px)'},{transform:'translateY(-'+(steps*h)+'px)'}],{duration:1150+Math.min(index,8)*40,delay:Math.min(index,7)*20,easing:'cubic-bezier(.16,.82,.22,1)',fill:'forwards'});
+   animation.onfinish=()=>{if(el.dataset.value!==next)return;final.style.visibility='visible';track.remove();animation.cancel();};
+   anims.push(animation);
+ }
+ activeAnimations.set(el,anims);
+}
+function showError(tab,messages){const el=document.getElementById('err-'+tab);el.hidden=!messages.length;el.textContent=messages.join(' ');}
+function calc(){
+ const v={},err={};
+ for(const key of Object.keys(defaults)){
+  v[key]=parse(f[key].value);
+  err[key]=Number.isFinite(v[key])?rules[key](v[key]):'Введите корректное число.';
+  f[key].parentElement.classList.toggle('invalid',Boolean(err[key]));f[key].setAttribute('aria-invalid',String(Boolean(err[key])));
+ }
+ const te=['deposit','leverage','position','stop'].map(k=>err[k]).filter(Boolean),pe=['deposit','leverage','position'].map(k=>err[k]).filter(Boolean),ge=['deposit','goal','days'].map(k=>err[k]).filter(Boolean);
+ showError('trade',te);showError('parts',pe);showError('goals',ge);
+ const volume=pe.length?NaN:v.deposit*v.position/100,margin=pe.length?NaN:volume/v.leverage;
+ roll('notional',te.length?'—':money(volume));roll('margin',te.length?'—':money(margin));
+ if(te.length){roll('loss','—');roll('risk','—');}
+ else{const loss=volume*v.stop/100,risk=loss/v.deposit*100;roll('loss',money(loss));roll('risk',percent(risk));document.getElementById('risk-card').classList.toggle('danger',risk>2);document.getElementById('risk-card').classList.toggle('safe',risk<=2);}
+ plain('partVolume',money(volume));plain('partMargin',money(margin));plain('partShare',pe.length?'—':percent(v.position)+' депозита');plain('partLev',pe.length?'—':'Плечо '+new Intl.NumberFormat('ru-RU',{maximumFractionDigits:4}).format(v.leverage)+'×');
+ [.1,.1,.2,.2,.4].forEach((share,i)=>{document.querySelector('[data-share="'+i+'"]').textContent=pe.length?'—':percent(v.position*share)+' деп.';document.querySelector('[data-volume="'+i+'"]').textContent=money(volume*share);document.querySelector('[data-margin="'+i+'"]').textContent=money(margin*share);});
+ if(ge.length){['month','monthPct','day','dayPct','daysCount'].forEach(k=>roll(k,'—'));plain('deposit',err.deposit?'—':money(v.deposit));}
+ else{const daily=v.goal/v.days;plain('deposit',money(v.deposit));roll('month',money(v.goal));roll('monthPct','+'+percent(v.goal/v.deposit*100)+' от депозита');roll('day',money(daily));roll('dayPct','+'+percent(daily/v.deposit*100));roll('daysCount',String(v.days));}
+ try{localStorage.setItem('risk-manager-gold-v1',JSON.stringify(Object.fromEntries(Object.keys(defaults).map(k=>[k,f[k].value]))));}catch(e){}
+ ready=true;
+}
+function show(name){['trade','parts','goals'].forEach(k=>{const selected=k===name,p=document.getElementById('pane-'+k),b=document.getElementById('tab-'+k);p.classList.toggle('active',selected);p.setAttribute('aria-hidden',String(!selected));p.inert=!selected;b.setAttribute('aria-selected',String(selected));b.tabIndex=selected?0:-1;});}
+['trade','parts','goals'].forEach(k=>document.getElementById('tab-'+k).addEventListener('click',()=>show(k)));
+Object.values(f).forEach(el=>el.addEventListener('input',calc));
+document.getElementById('reset').addEventListener('click',()=>{Object.keys(defaults).forEach(k=>f[k].value=defaults[k]);calc();});
+try{const saved=JSON.parse(localStorage.getItem('risk-manager-gold-v1')||'null');if(saved&&typeof saved==='object')Object.keys(defaults).forEach(k=>{if(typeof saved[k]==='string')f[k].value=saved[k];});}catch(e){}
+const telegram=window.Telegram&&window.Telegram.WebApp;
+if(telegram){try{telegram.ready();telegram.expand();telegram.setHeaderColor('#090a0c');telegram.setBackgroundColor('#090a0c');}catch(e){}}
+show('trade');calc();
+})();
+</script>
+</body></html>
