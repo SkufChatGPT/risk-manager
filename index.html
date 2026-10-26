@@ -4,9 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#090a0c">
-<title>Risk Manager · Black & Gold</title>
-<meta name="description" content="Калькулятор риска для фьючерсов: торговля, набор позиции и цели прибыли.">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>Risk Manager · Black & Gold · Mobile XL</title>
+<meta name="description" content="Risk Manager: мобильный калькулятор риска для фьючерсов. Торговля, набор позиции, цели прибыли.">
 <style>
 :root{color-scheme:dark;--bg:#090a0c;--card:#1c1d1f;--field:#252527;--edge:#393838;--fg:#f7f5ef;--dim:#aaa8a5;--gold:#eeba45;--bright:#ffda83;--red:#ff8b9b;--redbg:#3a242b;--green:#75d9ae}
 *{box-sizing:border-box}
@@ -39,6 +38,76 @@ table{width:100%;table-layout:fixed;border-collapse:collapse}th,td{text-align:ri
 .digits{display:inline-flex;align-items:center;vertical-align:middle;white-space:pre;line-height:1.2;font-family:inherit;font-size:inherit;font-weight:inherit;letter-spacing:0;font-variant-numeric:tabular-nums}.digit{display:inline-grid;place-items:center;position:relative;flex:0 0 1ch;width:1ch;height:1.2em;overflow:hidden;vertical-align:middle}.digit-final{display:grid;place-items:center;width:100%;height:100%;font:inherit;line-height:1;text-align:center}.digit-track{position:absolute;top:0;left:0;width:100%;pointer-events:none}.digit-step{display:grid;place-items:center;width:100%;height:1.2em;font:inherit;line-height:1;text-align:center}.symbol{display:inline-flex;align-items:center;height:1.2em;white-space:pre;flex-shrink:0;line-height:1}
 @media(max-width:365px){.app{padding:8px}.brand{font-size:15px}.card{padding:9px}.tab{font-size:9.5px}.grid{gap:6px}.metric{padding:8px 7px}.value{font-size:19px}.hero-value{font-size:26px}.goalvalue{font-size:18px}td{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.pane,.tab{transition:none!important;transform:none!important}}
+
+
+/* Mobile XL · v2.1 — increased touch targets, typography and results; same natural tab height */
+html{min-height:100%;background:#090a0c}
+body{font-size:15px;line-height:1.4;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.app{max-width:560px;padding:12px 12px max(18px,env(safe-area-inset-bottom));border-radius:18px;background:radial-gradient(ellipse at 88% 0%,#a66a202a,transparent 49%),var(--bg)}
+.header{height:auto;min-height:52px;margin:5px 2px 15px;gap:8px}
+.identity{gap:10px}.logo{height:47px;width:47px;border-radius:13px;background:linear-gradient(135deg,#43341a,#1b1711)}
+.logo svg{width:27px;height:27px}.brand{font-size:clamp(18px,5.5vw,22px);letter-spacing:-.8px}.subbrand{font-size:10px;letter-spacing:1px;margin-top:5px}
+.live{font-size:11px;padding:7px 9px;background:#43321855;border-color:#735a2b}
+.tabs{grid-template-columns:1fr 1.2fr 1.13fr;gap:6px;padding:5px;border-radius:14px;margin-bottom:13px;border-color:#80602d88}
+.tab{min-height:62px;gap:5px;padding:8px 3px;border-radius:10px;font-size:clamp(11px,3vw,13px);background:rgba(238,185,74,.045)}
+.tab svg{width:20px;height:20px}.tab[aria-selected=true]{background:linear-gradient(155deg,#ffda8640,#de9d271a);box-shadow:0 5px 19px #eeb94a24}
+.stage{min-height:510px;grid-template-columns:minmax(0,1fr)}
+.pane{transform:translateY(9px);transition:opacity .4s cubic-bezier(.2,.75,.3,1),transform .4s cubic-bezier(.2,.75,.3,1),visibility 0s linear .4s}
+.pane.active{transform:translateY(0);transition:opacity .4s cubic-bezier(.2,.75,.3,1),transform .4s cubic-bezier(.2,.75,.3,1),visibility 0s}
+.card{border-radius:15px;padding:16px;margin-bottom:11px;border-color:#414043;background:linear-gradient(150deg,#202124,#151618)}
+.cardhead{margin-bottom:15px}.cardhead strong{font-size:16px;letter-spacing:-.3px}.reset{font-size:13px;padding:6px 0}
+.chip{font-size:10px;letter-spacing:.2px;padding:5px 7px;border-radius:7px;border-color:#765b2d}
+.grid,.metrics,.summary{gap:10px}.grid{column-gap:11px;row-gap:14px}
+.label{font-size:13px;margin-bottom:7px;color:#c9c4be;font-weight:700}
+.field{height:55px;border-radius:11px;border-color:#4b4849;transition:border-color .2s,box-shadow .2s}
+input{font-size:22px;padding-left:13px}.unit{font-size:15px;padding:0 13px 0 4px}.hint{font-size:11px;margin-top:5px}
+.divider{margin:18px 0 16px;background:linear-gradient(90deg,#8e6b32,#353438)}
+.metric{min-height:113px;padding:13px 12px;border-radius:12px;border-color:#454244;background:#242527}
+.metric.gold{border-color:#826432;background:linear-gradient(135deg,#382d1c,#26231e)}
+.metric.danger{border-color:#784750}.metric.safe{border-color:#47725a}
+.ml{font-size:12px;font-weight:600;line-height:1.3;color:#bab5b0}
+.value{font-size:clamp(23px,6.7vw,31px);margin-top:11px;line-height:1.2;min-height:1.2em}
+.note{font-size:12px;line-height:1.55;padding:4px 3px;color:#b2aca4}
+.error{font-size:12px;padding:11px;margin:10px 0;border-radius:9px}
+.summary{margin-bottom:12px}.sum{padding:14px 12px;border-radius:11px;border-color:#72592e;background:#2e271d}
+.sumvalue{font-size:clamp(23px,6vw,29px);margin:8px 0 4px}.small{font-size:11px}
+.bar{height:9px;gap:3px;margin-bottom:9px}
+th,td{padding:8px 3px;border-color:#3d3b3c}th{font-size:12px;font-weight:700}td{font-size:clamp(11px,3.4vw,14px);font-weight:750}
+th:first-child,td:first-child{width:12%}th:nth-child(2){width:32%}th:nth-child(3),th:nth-child(4){width:28%}
+.idx{height:27px;width:27px;border-radius:8px;border-color:#71572c}
+.hero{padding:25px 10px;margin-bottom:11px;border-radius:13px;border-color:#927039;background:radial-gradient(ellipse at 50% 0%,#644b22,#2d2519 80%)}
+.hero-value{font-size:clamp(31px,9vw,43px);margin:13px 0}
+.hero-pct{font-size:14px;padding:8px 12px;border-radius:25px;background:#60491fbb}
+.goalbox{padding:15px 12px;border-radius:11px;border-color:#494646;background:#262729}
+.goalvalue{font-size:clamp(23px,6vw,29px);margin:11px 0}.goalpct{font-size:14px}
+.dep-row{font-size:13px;margin-top:18px}.dep-row strong{font-size:17px}
+/* Static glyph overlay is always native crisp text, no transformed final digit */
+.digits,.digit,.digit-final,.digit-step,.symbol{font-variant-numeric:tabular-nums}
+.digit{height:1.2em}.digit-final,.digit-step{height:1.2em}
+@media(max-width:380px){
+ .app{padding:9px 9px max(14px,env(safe-area-inset-bottom))}
+ .brand{font-size:18px}.tab{font-size:11px;min-height:57px}
+ .card{padding:12px}.label{font-size:12px}.field{height:51px}input{font-size:20px}
+ .metric{padding:12px 9px;min-height:105px}.value{font-size:24px}
+ .hero-value{font-size:32px}.goalvalue{font-size:23px}
+ td{font-size:12px}th{font-size:11px}.stage{min-height:530px}
+}
+@media(max-width:340px){
+ .brand{font-size:16px}.subbrand{font-size:9px}.live{font-size:10px}
+ .tab{font-size:10px;min-height:54px;padding:6px 2px}
+ .card{padding:11px}.grid{gap:9px}.metric{padding:10px 7px}.value{font-size:21px}
+ .hero-value{font-size:29px}.goalvalue{font-size:20px}
+ td{font-size:11px}th{font-size:10px}
+}
+@media(max-height:715px){
+ .header{margin-bottom:10px}.tabs{margin-bottom:9px}.tab{min-height:50px}
+ .card{padding:11px;margin-bottom:8px}.cardhead{margin-bottom:10px}.grid{row-gap:9px}
+ .field{height:46px}.metric{min-height:90px;padding:9px}.value{margin-top:7px}
+ .divider{margin:12px 0}.note{font-size:11px}.sum{padding:10px}
+ th,td{padding:6px 3px}.stage{min-height:460px}
+}
+@media(prefers-reduced-motion:reduce){.tab,.pane{transition:none!important;transform:none!important}}
+
 </style>
 </head>
 <body>
@@ -107,7 +176,7 @@ function roll(key,next){
  const row=document.createElement('span');row.className='digits';row.setAttribute('aria-hidden','true');
  let i=0;const moving=[];
  for(const ch of next){
-   if(!/\d/.test(ch)){const s=document.createElement('span');s.className='symbol';s.textContent=ch;row.appendChild(s);continue;}
+   if(!/\d/.test(ch)){const s=document.createElement('span');s.className='symbol';s.textContent=ch===' '?String.fromCharCode(160):ch;row.appendChild(s);continue;}
    const target=Number(ch),aligned=i+oldDigits.length-nextDigits.length;
    const from=aligned>=0&&aligned<oldDigits.length?Number(oldDigits[aligned]):0;
    const slot=document.createElement('span');slot.className='digit';
