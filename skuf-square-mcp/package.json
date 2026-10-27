@@ -1,0 +1,8 @@
+{
+  "name": "skuf-binance-square-private",
+  "version": "0.2.1",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": { "start": "node server/http.mjs", "start:local": "node server/index.mjs" }
+}
