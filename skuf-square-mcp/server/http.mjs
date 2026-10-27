@@ -3,6 +3,7 @@ import {timingSafeEqual} from 'node:crypto';
 import {hasPostingKey,publishSquareText} from './square.mjs';
 const token=process.env.MCP_ACCESS_TOKEN;
 if(!token || token.length<24) throw Error('Missing MCP_ACCESS_TOKEN');
+console.info('BINANCE_SQUARE_OPENAPI_KEY_PRESENT=' + Boolean(process.env.BINANCE_SQUARE_OPENAPI_KEY?.trim()));
 const tools=[
 {name:'square_connection_status',description:'Check if Square API key is configured.',inputSchema:{type:'object',properties:{}}},
 {name:'square_publish_text',description:'Publish only text explicitly approved by user.',inputSchema:{type:'object',properties:{text:{type:'string'},confirmation:{type:'string',enum:['ПУБЛИКУЙ']}},required:['text','confirmation']}}
